@@ -1,0 +1,41 @@
+# Custom SQL Injection Prevention Rules
+# MEMBER_ID 화이트리스트 검증
+SecRule ARGS:MEMBER_ID "!@rx ^[a-zA-Z0-9_]{4,20}$" \
+    "id:3001,\
+    phase:2,\
+    block,\
+    log,\
+    msg:'Invalid MEMBER_ID format - Only alphanumeric and underscore allowed',\
+    logdata:'Attempted MEMBER_ID: %{ARGS.MEMBER_ID}',\
+    severity:'CRITICAL',\
+    tag:'application-multi',\
+    tag:'language-multi',\
+    tag:'platform-multi',\
+    tag:'attack-sqli'"
+
+# MEMBER_PW도 추가하고 싶다면
+SecRule ARGS:MEMBER_PW "!@rx ^[a-zA-Z0-9!@#$%^&*()_+=\-]{4,30}$" \
+    "id:3002,\
+    phase:2,\
+    block,\
+    log,\
+    msg:'Invalid MEMBER_PW format',\
+    severity:'CRITICAL'"
+
+# Oracle Error-based SQL Injection 차단
+SecRule ARGS "@rx (?i)(ctxsys|drithsx|utl_inaddr|xmltype|extractvalue|dbms_)" \
+    "id:3003,\
+    phase:2,\
+    block,\
+    log,\
+    msg:'Oracle Error-based SQL Injection Attempt',\
+    severity:'CRITICAL'"
+
+# Oracle 에러 메시지 누출 방지
+SecRule RESPONSE_BODY "@rx ORA-\d{5}" \
+    "id:3004,\
+    phase:4,\
+    block,\
+    log,\
+    msg:'Oracle Error Message Detected in Response',\
+    severity:'ERROR'"
